@@ -22,12 +22,19 @@ def get_title(file):
 
 
 def create_parser():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--interactive', action='store_const', const=True, default=False)
-    parser.add_argument('-c', '--create', action='store_const', const=True, default=False)
-    parser.add_argument('-p', '--parse', action='store_const', const=True, default=False)
-    parser.add_argument('-d', '--debug', action='store_const', const=True, default=False)
-
+    parser = argparse.ArgumentParser(
+        prog='folder_icons readme generator',
+        description='''Кривой, но рабочий генератор демо-версий иконок для ридми проекта folder_icons''',
+        epilog='''(c) 2021, Dan Sazonov. License MIT'''
+    )
+    parser.add_argument('-i', '--interactive', action='store_const', const=True, default=False,
+                        help='Запуск скрипта в интерактивном режиме')
+    parser.add_argument('-p', '--parse', action='store_const', const=True, default=False,
+                        help='Создает файл с данными для таблицы')
+    parser.add_argument('-c', '--create', action='store_const', const=True, default=False,
+                        help='Запуск генератора таблицы')
+    parser.add_argument('-d', '--debug', action='store_const', const=True, default=False,
+                        help='Режим отладки')
     return parser
 
 
@@ -155,7 +162,7 @@ if __name__ == "__main__":
                                                                                                config.VERSION['micro'],
                                                                                                config.AUTHOR) + c_reset)
 
-    if namespace.interactive + namespace.create + namespace.parse > 1:
+    if namespace.interactive + namespace.create + namespace.parse + namespace.help > 1:
         # проверяем количество флагов
         print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Слишком много аргументов. RTFM!')
         print(colorama.Style.RESET_ALL)
