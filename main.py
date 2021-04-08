@@ -8,10 +8,7 @@ import json
 colorama.init()
 c_reset = colorama.Style.RESET_ALL
 
-settings = {
-    'dir': 'p:\\folder_icons\\',
-    'dir_ignore': ['.git', '.gitignore', '.idea', 'demo.md', 'README.md', 'LICENSE']
-}
+settings = config.SETTINGS
 
 
 def get_title(file):
