@@ -53,7 +53,8 @@ def files_parser(debug_mode):
         try:
             catalog_files = os.listdir(settings['dir'] + catalog)
         except NotADirectoryError:
-            if debug_mode: print(colorama.Fore.RED + 'В папке лишние файлы. Удалите их, или добавьте в settings["dir_ignore"]' + c_reset)
+            if debug_mode: print(
+                colorama.Fore.RED + 'В папке лишние файлы. Удалите их, или добавьте в settings["dir_ignore"]' + c_reset)
             return False
         output[catalog] = {file_name: get_title(file_name) for file_name in catalog_files}
 
@@ -67,7 +68,7 @@ def files_parser(debug_mode):
             print(colorama.Fore.GREEN + 'Создан structure.json' + c_reset)
     if debug_mode:
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Завершен парсер файлов' + c_reset)
-        return True
+    return True
 
 
 def create_table(debug_mode):
@@ -110,13 +111,38 @@ def create_table(debug_mode):
                 row_title = []
         output.extend(['</tbody>', '</table><br>\n'])
 
-    print(colorama.Fore.GREEN + 'Таблица создана' + c_reset)
+    if debug_mode: print(colorama.Fore.GREEN + 'Таблица создана' + c_reset)
     with open('table.html', 'w') as write_file:
         for line in output:
             write_file.write(line + '\n')
         if debug_mode:
             print(colorama.Fore.GREEN + 'Таблица записана в table.html' + c_reset)
     return True
+
+
+def parser_run():
+    result = files_parser(namespace.debug)
+    if namespace.debug and result:
+        print(
+            colorama.Style.BRIGHT + colorama.Fore.GREEN + 'files_parser выполнен успешно. Попробуйте запустить в режиме отладки' + c_reset)
+    if not result:
+        print(
+            colorama.Style.BRIGHT + colorama.Fore.RED + 'files_parser завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
+    else:
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
+    return result
+
+
+def generator_run():
+    result = create_table(namespace.debug)
+    if namespace.debug and result:
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'create_table выполнен успешно' + c_reset)
+    if not result:
+        print(
+            colorama.Style.BRIGHT + colorama.Fore.RED + 'create_table завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
+    else:
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
+    return result
 
 
 if __name__ == "__main__":
@@ -134,23 +160,27 @@ if __name__ == "__main__":
         print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Слишком много аргументов. RTFM!')
         print(colorama.Style.RESET_ALL)
         exit(0)
-
     if namespace.parse:
-        result = files_parser(namespace.debug)
-        if namespace.debug and result:
-            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'files_parser выполнен успешно. Попробуйте запустить в режиме отладки' + c_reset)
-        if not result:
-            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'files_parser завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
-        else:
-            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
-
+        parser_run()
     if namespace.create:
-        result = create_table(namespace.debug)
-        if namespace.debug and result:
-            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'create_table выполнен успешно' + c_reset)
-        if not result:
-            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'create_table завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
-        else:
-            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
+        generator_run()
+
+    if namespace.interactive:
+        path = input('Укажите путь к папке folder_icons (eg, C:\\\\User\\folder_icons\\): ')
+        if not path.endswith('\\'):
+            path = path + '\\'
+        settings['dir'] = path
+        ignore = input(
+            colorama.Fore.YELLOW + 'Укажите папки, файлы в которых остались без изменений. Разделяйте через "; " (eg, Adobe; Games): ' + c_reset).split(
+            "; ")
+        if ignore != ['']:
+            settings['dir_ignore'] = settings['dir_ignore'] + ignore
+        check = parser_run()
+        if not check: exit(0)
+        input(
+            colorama.Fore.YELLOW + 'Проверьте файл structure.json и внесите правки. По завершению нажмите "Enter"' + c_reset)
+        check = generator_run()
+        if not check: exit(0)
 else:
-    print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Что-то пошло не так. Попробуйте запустить в режиме отладки')
+    print(
+        colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Что-то пошло не так. Попробуйте запустить в режиме отладки')
