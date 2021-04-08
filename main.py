@@ -24,7 +24,6 @@ def get_title(file):
 def create_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--interactive', action='store_const', const=True, default=False)
-    parser.add_argument('-m', '--manual', action='store_const', const=True, default=False)
     parser.add_argument('-c', '--create', action='store_const', const=True, default=False)
     parser.add_argument('-p', '--parse', action='store_const', const=True, default=False)
     parser.add_argument('-d', '--debug', action='store_const', const=True, default=False)
@@ -46,7 +45,8 @@ def files_parser(debug_mode):
         catalogs = sorted(set(os.listdir(settings['dir'])) - set(settings['dir_ignore']))
     except FileNotFoundError:
         catalogs = None
-        print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Путь к исходному каталогу указан неверно')
+        print(
+            colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Путь к исходному каталогу указан неверно')
         return False
     output = dict()
     for catalog in catalogs:
@@ -68,7 +68,49 @@ def files_parser(debug_mode):
 
 def create_table(debug_mode):
     if debug_mode:
-        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'запущен генератор' + c_reset)
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Запущен генератор' + c_reset)
+        try:
+            f = open('structure.json', 'r')
+            print(colorama.Fore.GREEN + 'Подключаем structure.json' + c_reset)
+            f.close()
+        except FileNotFoundError:
+            print(colorama.Fore.RED + 'Файл structure.json не найден' + c_reset)
+            return False
+    try:
+        with open('structure.json', 'r') as in_file:
+            structure = json.load(in_file)
+            if debug_mode: print(structure, type(structure))
+    except FileNotFoundError:
+        structure = None
+        print(
+            colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Файл structure.json не найден. Запустите парсер')
+        return False
+    output = []
+
+    for catalog in structure:
+        output.extend(['<h2>{}</h2>'.format(catalog), '<table border="1px">', '<tbody>'])
+        row_icons = []
+        out = []
+        for num, file_name in enumerate(structure[catalog], start=1):
+            title = structure[catalog][file_name]
+            html = '<td>' + str(num) + ' ' + file_name + ' ' + title + '</td>'
+            if num == 1:
+                row_icons.extend(['<tr>', html])
+            elif num % 5 == 0 and num < len(structure[catalog]):
+                row_icons.extend([html, '</tr>', '<tr>'])
+            else:
+                row_icons.append(html)
+        else:
+            row_icons.extend(['</tr>'])
+
+        output.extend([*row_icons, '</tbody>', '</table><br>\n'])
+    print(colorama.Fore.GREEN + 'Таблица создана' + c_reset)
+    with open('table.html', 'w') as write_file:
+        for line in output:
+            write_file.write(line + '\n')
+        if debug_mode:
+            print(colorama.Fore.GREEN + 'Таблица записана в table.html' + c_reset)
+    return True
 
 
 if __name__ == "__main__":
@@ -81,7 +123,7 @@ if __name__ == "__main__":
                                                                                                config.VERSION['micro'],
                                                                                                config.AUTHOR) + c_reset)
 
-    if namespace.interactive + namespace.manual + namespace.create + namespace.parse > 1:
+    if namespace.interactive + namespace.create + namespace.parse > 1:
         # проверяем количество флагов
         print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Слишком много аргументов. RTFM!')
         print(colorama.Style.RESET_ALL)
@@ -97,4 +139,12 @@ if __name__ == "__main__":
             print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
 
     if namespace.create:
-        create_table(namespace.debug)
+        result = create_table(namespace.debug)
+        if namespace.debug and result:
+            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'create_table выполнен успешно' + c_reset)
+        elif namespace.debug:
+            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'create_table завершен с ошибкой' + c_reset)
+        else:
+            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
+else:
+    print('fuckup')
