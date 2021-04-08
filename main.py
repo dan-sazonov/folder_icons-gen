@@ -161,12 +161,14 @@ if __name__ == "__main__":
                                                                                                config.VERSION['minor'],
                                                                                                config.VERSION['micro'],
                                                                                                config.AUTHOR) + c_reset)
-
-    if namespace.interactive + namespace.create + namespace.parse + namespace.help > 1:
-        # проверяем количество флагов
+    # проверяем количество флагов
+    if namespace.interactive + namespace.create + namespace.parse + namespace.debug == 0:
+        print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Нет нужных аргументов. RTFM!')
+    if namespace.interactive + namespace.create + namespace.parse > 1:
         print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Слишком много аргументов. RTFM!')
         print(colorama.Style.RESET_ALL)
         exit(0)
+
     if namespace.parse:
         parser_run()
     if namespace.create:
@@ -178,14 +180,14 @@ if __name__ == "__main__":
             path = path + '\\'
         settings['dir'] = path
         ignore = input(
-            colorama.Fore.YELLOW + 'Укажите папки, файлы в которых остались без изменений. Разделяйте через "; " (eg, Adobe; Games): ' + c_reset).split(
+            'Укажите папки, файлы в которых остались без изменений. Разделяйте через "; " (eg, Adobe; Games): ').split(
             "; ")
         if ignore != ['']:
             settings['dir_ignore'] = settings['dir_ignore'] + ignore
         check = parser_run()
         if not check: exit(0)
         input(
-            colorama.Fore.YELLOW + 'Проверьте файл structure.json и внесите правки. По завершению нажмите "Enter"' + c_reset)
+            'Проверьте файл structure.json и внесите правки. По завершению нажмите "Enter"')
         check = generator_run()
         if not check: exit(0)
 else:
