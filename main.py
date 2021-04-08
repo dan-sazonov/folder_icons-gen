@@ -3,14 +3,22 @@ import sys
 import os
 import argparse
 import colorama
+import json
 
 colorama.init()
 c_reset = colorama.Style.RESET_ALL
 
 settings = {
-    'dir': 'p:\\folder_icons',
+    'dir': 'p:\\folder_icons\\',
     'dir_ignore': ['.git', '.gitignore', '.idea', 'demo.md', 'README.md', 'LICENSE']
 }
+
+
+def get_title(file):
+    separators = {'_': ' ', '-': ' ', '|': ' '}
+    trans = str.maketrans(separators)
+    title = file.split('.')[0].translate(trans).title()
+    return title
 
 
 def create_parser():
@@ -28,8 +36,23 @@ def files_parser(debug_mode):
     if debug_mode:
         print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Запущен парсер файлов' + c_reset)
         print(colorama.Fore.GREEN + 'Работаем в: ' + c_reset + settings['dir'])
-        print(colorama.Fore.GREEN + 'Смотрим на: ' + c_reset + ', '.join(set(os.listdir(settings['dir'])) - set(
-            settings['dir_ignore'])))
+        try:
+            print(colorama.Fore.GREEN + 'Смотрим на: ' + c_reset + ', '.join(set(os.listdir(settings['dir'])) - set(
+                settings['dir_ignore'])))
+        except FileNotFoundError:
+            print(colorama.Fore.RED + 'Путь указан неверно' + c_reset)
+    # with open('structure.json', 'w') as parsed:
+    #     pass
+    catalogs = list(set(os.listdir(settings['dir'])) - set(settings['dir_ignore']))
+    output = dict()
+    for catalog in catalogs:
+        catalog_files = os.listdir(settings['dir'] + catalog)
+        output[catalog] = {file_name: get_title(file_name) for file_name in catalog_files}
+
+        if debug_mode:
+            print(colorama.Fore.BLACK + colorama.Back.WHITE + catalog + ':' + c_reset + ' ' + str(catalog_files))
+
+    if debug_mode: print('\n' + str(output) + '\n')
 
 
 def create_table(debug_mode):
