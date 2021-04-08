@@ -41,9 +41,13 @@ def files_parser(debug_mode):
                 settings['dir_ignore'])))
         except FileNotFoundError:
             print(colorama.Fore.RED + 'Путь указан неверно' + c_reset)
-    # with open('structure.json', 'w') as parsed:
-    #     pass
-    catalogs = list(set(os.listdir(settings['dir'])) - set(settings['dir_ignore']))
+            return False
+    try:
+        catalogs = sorted(set(os.listdir(settings['dir'])) - set(settings['dir_ignore']))
+    except FileNotFoundError:
+        catalogs = None
+        print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Путь к исходному каталогу указан неверно')
+        return False
     output = dict()
     for catalog in catalogs:
         catalog_files = os.listdir(settings['dir'] + catalog)
@@ -53,6 +57,13 @@ def files_parser(debug_mode):
             print(colorama.Fore.BLACK + colorama.Back.WHITE + catalog + ':' + c_reset + ' ' + str(catalog_files))
 
     if debug_mode: print('\n' + str(output) + '\n')
+    with open('structure.json', 'w') as write_file:
+        json.dump(output, write_file, indent=2)
+        if debug_mode:
+            print(colorama.Fore.GREEN + 'Создан structure.json' + c_reset)
+    if debug_mode:
+        print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Завершен парсер файлов' + c_reset)
+        return True
 
 
 def create_table(debug_mode):
@@ -77,7 +88,13 @@ if __name__ == "__main__":
         exit(0)
 
     if namespace.parse:
-        files_parser(namespace.debug)
+        result = files_parser(namespace.debug)
+        if namespace.debug and result:
+            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'files_parser выполнен успешно' + c_reset)
+        elif namespace.debug:
+            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'files_parser завершен с ошибкой' + c_reset)
+        else:
+            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
 
     if namespace.create:
         create_table(namespace.debug)
