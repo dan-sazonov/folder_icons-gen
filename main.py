@@ -50,7 +50,11 @@ def files_parser(debug_mode):
         return False
     output = dict()
     for catalog in catalogs:
-        catalog_files = os.listdir(settings['dir'] + catalog)
+        try:
+            catalog_files = os.listdir(settings['dir'] + catalog)
+        except NotADirectoryError:
+            if debug_mode: print(colorama.Fore.RED + 'В папке лишние файлы. Удалите их, или добавьте в settings["dir_ignore"]' + c_reset)
+            return False
         output[catalog] = {file_name: get_title(file_name) for file_name in catalog_files}
 
         if debug_mode:
@@ -90,20 +94,22 @@ def create_table(debug_mode):
     for catalog in structure:
         output.extend(['<h2>{}</h2>'.format(catalog), '<table border="1px">', '<tbody>'])
         row_icons = []
-        out = []
+        row_title = []
         for num, file_name in enumerate(structure[catalog], start=1):
             title = structure[catalog][file_name]
-            html = '<td>' + str(num) + ' ' + file_name + ' ' + title + '</td>'
-            if num == 1:
-                row_icons.extend(['<tr>', html])
-            elif num % 5 == 0 and num < len(structure[catalog]):
-                row_icons.extend([html, '</tr>', '<tr>'])
-            else:
-                row_icons.append(html)
-        else:
-            row_icons.extend(['</tr>'])
+            html = '<a href="https://raw.githubusercontent.com/blackcatprog/folder_icons/main/{folder}/{name}" title="{title}"><img src="./{folder}/{name}" alt="{title}" width="180"></a>'.format(
+                **{'folder': catalog, 'name': file_name.replace('#', '%23'), 'title': title})
+            # html = str(num) + ' ' + file_name + ' ' + title
+            row_icons.append(html)
+            row_title.append(title)
+            if (len(row_icons) == 5) or (num == len(structure[catalog].keys())):
+                paste_this = ''.join(['<tr>', '<td>{}</td>' * len(row_icons), '</tr>'])
+                output.append(paste_this.format(*row_icons))
+                output.append(paste_this.format(*row_title))
+                row_icons = []
+                row_title = []
+        output.extend(['</tbody>', '</table><br>\n'])
 
-        output.extend([*row_icons, '</tbody>', '</table><br>\n'])
     print(colorama.Fore.GREEN + 'Таблица создана' + c_reset)
     with open('table.html', 'w') as write_file:
         for line in output:
@@ -132,9 +138,9 @@ if __name__ == "__main__":
     if namespace.parse:
         result = files_parser(namespace.debug)
         if namespace.debug and result:
-            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'files_parser выполнен успешно' + c_reset)
-        elif namespace.debug:
-            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'files_parser завершен с ошибкой' + c_reset)
+            print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'files_parser выполнен успешно. Попробуйте запустить в режиме отладки' + c_reset)
+        if not result:
+            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'files_parser завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
         else:
             print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
 
@@ -142,9 +148,9 @@ if __name__ == "__main__":
         result = create_table(namespace.debug)
         if namespace.debug and result:
             print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'create_table выполнен успешно' + c_reset)
-        elif namespace.debug:
-            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'create_table завершен с ошибкой' + c_reset)
+        if not result:
+            print(colorama.Style.BRIGHT + colorama.Fore.RED + 'create_table завершен с ошибкой. Попробуйте запустить в режиме отладки' + c_reset)
         else:
             print(colorama.Style.BRIGHT + colorama.Fore.GREEN + 'Готово!' + c_reset)
 else:
-    print('fuckup')
+    print(colorama.Fore.RED + colorama.Style.BRIGHT + 'err: ' + c_reset + 'Что-то пошло не так. Попробуйте запустить в режиме отладки')
