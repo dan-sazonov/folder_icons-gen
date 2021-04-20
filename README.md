@@ -38,5 +38,5 @@ $ python3 -m pip install -r requirements.txt
 [:e-mail: Email](mailto:p-294803@yandex.ru) <br>
 
 ## Лицензия
-Весь код распространяется по лицензии [MIT](https://github.com/dan-sazonov/folder_icons-gen/blob/main/LICENSE).
-Вы можете использовать код в любых целях, указав ссылку на автора.
+Весь код распространяется по лицензии [GPL-3.0 License ](https://github.com/dan-sazonov/folder_icons-gen/blob/main/LICENSE).
+Подробнее см. в файле.
